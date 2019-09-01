@@ -1,3 +1,3 @@
-module philoenglish.com/props
+module philoenglish.com/guoapeng/propsReader
 
 go 1.12
