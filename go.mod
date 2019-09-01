@@ -1,3 +1,3 @@
-module github.com/guoapeng/propsReader
+module github.com/guoapeng/props
 
 go 1.12
