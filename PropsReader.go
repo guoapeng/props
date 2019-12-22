@@ -7,21 +7,30 @@ import (
 	"strings"
 )
 
-const configFile = "config.properties"
+const defaultConfigFile = "config.properties"
 
-type AppConfigProperties struct{
+type AppConfigProperties interface {
+	Get(key string) string
+}
+
+type appConfigProperties struct{
 	props map[string]string
 }
 
-func (appConf *AppConfigProperties) Get(key string) string {
+func (appConf *appConfigProperties) Get(key string) string {
 	return appConf.props[key]
 }
 
-func New() (*AppConfigProperties, error) {
-	if props1, err := ReadPropertiesFile(configFile); err != nil {
+func New(appName string) (AppConfigProperties, error) {
+	var appConfigFile string
+	appConfigFile = os.Getenv(appName+"_CONFIG")
+	if len(appConfigFile) == 0 {
+		appConfigFile = defaultConfigFile
+	}
+	if props1, err := ReadPropertiesFile(appConfigFile); err != nil {
 		return nil, err
 	} else {
-		return &AppConfigProperties{props: props1}, nil
+		return &appConfigProperties{props: props1}, nil
 	}
 }
 
