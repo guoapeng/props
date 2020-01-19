@@ -93,7 +93,7 @@ func NewFactory(appName string, propertyFile string) *AppConfigFactory {
 	return nil
 }
 
-func (factory *AppConfigFactory) New(appName string) (AppConfigProperties, error) {
+func (factory *AppConfigFactory) New() (AppConfigProperties, error) {
 	var appConfigFile string
 	appConfigFile = factory.propertyFile
 	if len(appConfigFile) == 0 {

@@ -59,7 +59,7 @@ func (s *PropsReaderSuite) TestReadingConfigFromSystemFolderNew() {
 	secondScanner := bufio.NewScanner(buf2)
 	s.bufioUtils.EXPECT().NewScanner(fileInSystemDir).Return(firstScanner)
 	s.bufioUtils.EXPECT().NewScanner(fileInHome).Return(secondScanner)
-	if appConf, err := s.factory.New("test"); err != nil {
+	if appConf, err := s.factory.New(); err != nil {
 		s.T().Errorf("reading config file error")
 	} else {
 		if appConf.Get("key") != "valueFromHome" {
@@ -95,7 +95,7 @@ func (s *PropsReaderSuite) TestSourceFunction() {
 	s.osUtils.EXPECT().PathExists(s.HomeDir+"config.properties").Return(true, nil)
 	s.osUtils.EXPECT().PathExists("config2.properties").Return(true, nil)
 
-	if appConf, err := s.factory.New("test"); err != nil {
+	if appConf, err := s.factory.New(); err != nil {
 		s.T().Errorf("reading config file error")
 	} else {
 		if appConf.Get("key") != "valueFromHome" {
@@ -134,7 +134,7 @@ func (s *PropsReaderSuite) TestDontProcessFileDoesntExist() {
 	s.osUtils.EXPECT().PathExists(s.HomeDir+"config.properties").Return(true, nil)
 	s.osUtils.EXPECT().PathExists("config2.properties").Return(false, nil)
 	s.osUtils.EXPECT().PathExists("config3.properties").Return(false, nil)
-	if appConf, err := s.factory.New("test"); err != nil {
+	if appConf, err := s.factory.New(); err != nil {
 		s.T().Errorf("reading config file error")
 	} else {
 		if appConf.Get("key") != "valueFromHome" {
