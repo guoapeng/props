@@ -36,7 +36,8 @@ func (s *PropsReaderSuite) SetT(t *testing.T) {
 	s.osUtils = mocks.NewMockOsUtils(mockCtrl)
 	s.bufioUtils = mocks.NewMockBufioUtils(mockCtrl)
 	s.SystemFolder = "/etc/test/"
-	s.HomeDir = "~/.test/"
+	homedir, _ := propsReader.Home()
+	s.HomeDir = homedir + "/.test/"
 	s.factory = propsReader.NewFactory("test", "config.properties")
 	s.factory.OsUtils = s.osUtils
 	s.factory.BufioUtils = s.bufioUtils
