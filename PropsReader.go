@@ -99,8 +99,10 @@ func (factory *AppConfigFactory) New(appName string) (AppConfigProperties, error
 	if len(appConfigFile) == 0 {
 		log.Fatal("mandatory property file is not set")
 	}
+
 	systemProps, _ := factory.ReadPropertiesFile(factory.SystemDir + appConfigFile)
 	homeProps1, _ := factory.ReadPropertiesFile(factory.HomeDir + appConfigFile)
+
 	for k, v := range homeProps1 {
 		systemProps[k] = v
 	}
@@ -112,6 +114,11 @@ func (factory *AppConfigFactory) ReadPropertiesFile(filename string) (map[string
 	if len(filename) == 0 {
 		return config, nil
 	}
+
+	if exists, err := factory.OsUtils.PathExists(filename); !exists || err != nil {
+		return config, err
+	}
+
 	file, err := factory.OsUtils.Open(filename)
 	if err != nil {
 		log.Fatal(err)

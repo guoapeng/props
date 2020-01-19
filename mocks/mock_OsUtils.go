@@ -61,3 +61,18 @@ func (mr *MockOsUtilsMockRecorder) Open(name interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Open", reflect.TypeOf((*MockOsUtils)(nil).Open), name)
 }
+
+// PathExists mocks base method
+func (m *MockOsUtils) PathExists(path string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PathExists", path)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PathExists indicates an expected call of PathExists
+func (mr *MockOsUtilsMockRecorder) PathExists(path interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PathExists", reflect.TypeOf((*MockOsUtils)(nil).PathExists), path)
+}

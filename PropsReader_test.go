@@ -51,6 +51,8 @@ func (s *PropsReaderSuite) TestReadingConfigFromSystemFolderNew() {
 	fileInHome := &os.File{}
 	s.osUtils.EXPECT().Open(s.SystemFolder+"config.properties").Return(fileInSystemDir, nil)
 	s.osUtils.EXPECT().Open(s.HomeDir+"config.properties").Return(fileInHome, nil)
+	s.osUtils.EXPECT().PathExists(s.SystemFolder+"config.properties").Return(true, nil)
+	s.osUtils.EXPECT().PathExists(s.HomeDir+"config.properties").Return(true, nil)
 	buf1 := strings.NewReader("key=value\n key2 = value2 ")
 	buf2 := strings.NewReader("key=valueFromHome\n key3 = value3 ")
 	firstScanner := bufio.NewScanner(buf1)
@@ -89,6 +91,9 @@ func (s *PropsReaderSuite) TestSourceFunction() {
 	s.osUtils.EXPECT().Open(s.SystemFolder+"config.properties").Return(fileInSystemDir, nil)
 	s.osUtils.EXPECT().Open(s.HomeDir+"config.properties").Return(fileInHome, nil)
 	s.osUtils.EXPECT().Open("config2.properties").Return(sourceInlineFile, nil)
+	s.osUtils.EXPECT().PathExists(s.SystemFolder+"config.properties").Return(true, nil)
+	s.osUtils.EXPECT().PathExists(s.HomeDir+"config.properties").Return(true, nil)
+	s.osUtils.EXPECT().PathExists("config2.properties").Return(true, nil)
 
 	if appConf, err := s.factory.New("test"); err != nil {
 		s.T().Errorf("reading config file error")
@@ -104,6 +109,45 @@ func (s *PropsReaderSuite) TestSourceFunction() {
 		}
 		if appConf.Get("key4") != "value4" {
 			s.T().Errorf("paring config file error, %s is missing", "key4")
+		}
+	}
+}
+
+func (s *PropsReaderSuite) TestDontProcessFileDoesntExist() {
+
+	s.osUtils.EXPECT().Getenv("test_CONFIG").Return("config.properties")
+	fileInSystemDir := &os.File{}
+	fileInHome := &os.File{}
+	sourceInlineFile := &os.File{}
+
+	firstScanner := bufio.NewScanner(strings.NewReader("key=value\n key2 = value2 \n source config2.properties \n source config3.properties "))
+	secondScanner := bufio.NewScanner(strings.NewReader("key=valueFromHome \n key3 = value3 "))
+	thirdScanner := bufio.NewScanner(strings.NewReader("key4=value4 \n key3 = value4 "))
+
+	s.bufioUtils.EXPECT().NewScanner(fileInSystemDir).Return(firstScanner)
+	s.bufioUtils.EXPECT().NewScanner(fileInHome).Return(secondScanner)
+	s.bufioUtils.EXPECT().NewScanner(sourceInlineFile).Return(thirdScanner)
+	s.osUtils.EXPECT().Open(s.SystemFolder+"config.properties").Return(fileInSystemDir, nil)
+	s.osUtils.EXPECT().Open(s.HomeDir+"config.properties").Return(fileInHome, nil)
+	s.osUtils.EXPECT().Open("config2.properties").Return(sourceInlineFile, nil)
+	s.osUtils.EXPECT().PathExists(s.SystemFolder+"config.properties").Return(true, nil)
+	s.osUtils.EXPECT().PathExists(s.HomeDir+"config.properties").Return(true, nil)
+	s.osUtils.EXPECT().PathExists("config2.properties").Return(false, nil)
+	s.osUtils.EXPECT().PathExists("config3.properties").Return(false, nil)
+	if appConf, err := s.factory.New("test"); err != nil {
+		s.T().Errorf("reading config file error")
+	} else {
+		if appConf.Get("key") != "valueFromHome" {
+			s.T().Errorf("paring config file error")
+		}
+		if appConf.Get("key2") != "value2" {
+			s.T().Errorf("paring config file error, %s is missing", "key2")
+		}
+		if appConf.Get("key3") != "value3" {
+			s.T().Errorf("paring config file error, %s is missing", "key3")
+		}
+		if appConf.Get("key4") == "value4" {
+			s.T().Errorf("paring config file error, %s shouldn't be loaded", "key4")
 		}
 	}
 }
