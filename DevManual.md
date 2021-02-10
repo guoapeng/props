@@ -1,4 +1,4 @@
-The file mock_propsReader.go is generated file by following the approach below 
+The file mock_propsReader.go is generated file by the following approach  
 ```bash
 cd <project_home>
 go get github.com/golang/mock/mockgen

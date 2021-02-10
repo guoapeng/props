@@ -4,7 +4,7 @@ a properties management library written in golang
 Prerequisite:
 install golang 1.13 or later
 
-## Installation
+## usage
 Use `go get` to install SDK
 
 ```sh

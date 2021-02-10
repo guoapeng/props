@@ -2,7 +2,6 @@ package propsReader_test
 
 import (
 	"bufio"
-	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/guoapeng/props"
 	"github.com/guoapeng/props/mocks"
@@ -35,18 +34,17 @@ func (s *PropsReaderSuite) SetT(t *testing.T) {
 	mockCtrl := gomock.NewController(s.T())
 	s.osUtils = mocks.NewMockOsUtils(mockCtrl)
 	s.bufioUtils = mocks.NewMockBufioUtils(mockCtrl)
-	s.SystemFolder = "/etc/test/"
+	s.SystemFolder = "/etc/APP/"
 	homedir, _ := propsReader.Home()
-	s.HomeDir = homedir + "/.test/"
-	s.factory = propsReader.NewFactory("test", "config.properties")
+	s.HomeDir = homedir + "/.APP/"
+	s.factory = propsReader.NewFactory("APP", "config.properties")
 	s.factory.OsUtils = s.osUtils
 	s.factory.BufioUtils = s.bufioUtils
 	defer mockCtrl.Finish()
 }
 
 func (s *PropsReaderSuite) TestReadingConfigFromSystemFolderNew() {
-	fmt.Println("hello")
-	s.osUtils.EXPECT().Getenv("test_CONFIG").Return("config.properties")
+	s.osUtils.EXPECT().Getenv("APP_CONFIG").Return("config.properties")
 	fileInSystemDir := &os.File{}
 	fileInHome := &os.File{}
 	s.osUtils.EXPECT().Open(s.SystemFolder+"config.properties").Return(fileInSystemDir, nil)
@@ -76,7 +74,7 @@ func (s *PropsReaderSuite) TestReadingConfigFromSystemFolderNew() {
 
 func (s *PropsReaderSuite) TestSourceFunction() {
 
-	s.osUtils.EXPECT().Getenv("test_CONFIG").Return("config.properties")
+	s.osUtils.EXPECT().Getenv("APP_CONFIG").Return("config.properties")
 	fileInSystemDir := &os.File{}
 	fileInHome := &os.File{}
 	sourceInlineFile := &os.File{}
@@ -115,7 +113,7 @@ func (s *PropsReaderSuite) TestSourceFunction() {
 
 func (s *PropsReaderSuite) TestDontProcessFileDoesntExist() {
 
-	s.osUtils.EXPECT().Getenv("test_CONFIG").Return("config.properties")
+	s.osUtils.EXPECT().Getenv("APP_CONFIG").Return("config.properties")
 	fileInSystemDir := &os.File{}
 	fileInHome := &os.File{}
 	sourceInlineFile := &os.File{}
