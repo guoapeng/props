@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"regexp"
 	"runtime"
 	"strings"
 )
@@ -38,8 +39,7 @@ func Home() (string, error) {
 		return user.HomeDir, nil
 	}
 
-	// cross compile support
-
+	// cross platform compile support
 	if "windows" == runtime.GOOS {
 		return homeWindows()
 	}
@@ -80,7 +80,6 @@ func homeWindows() (string, error) {
 	if home == "" {
 		return "", errors.New("HOMEDRIVE, HOMEPATH, and USERPROFILE are blank")
 	}
-
 	return home, nil
 }
 
@@ -146,6 +145,7 @@ func (factory *AppConfigFactory) ReadPropertiesFile(filename string) (map[string
 				value := ""
 				if len(preProcessedLine) > equal {
 					value = strings.TrimSpace(preProcessedLine[equal+1:])
+					value = factory.replaceEnvVariables(value)
 				}
 				config[key] = value
 			}
@@ -156,4 +156,14 @@ func (factory *AppConfigFactory) ReadPropertiesFile(filename string) (map[string
 		return nil, err
 	}
 	return config, nil
+}
+
+func (factory *AppConfigFactory) replaceEnvVariables(original string) string {
+	re := regexp.MustCompile("\\$\\{([A-Za-z0-9_]+)\\}")
+	newStr := original
+	matched := re.FindAllStringSubmatch(original, -1)
+	for _, match := range matched {
+		newStr = strings.ReplaceAll(newStr, match[0], factory.OsUtils.Getenv(match[1]))
+	}
+	return newStr
 }

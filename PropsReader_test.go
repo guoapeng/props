@@ -43,7 +43,7 @@ func (s *PropsReaderSuite) SetT(t *testing.T) {
 	defer mockCtrl.Finish()
 }
 
-func (s *PropsReaderSuite) TestReadingConfigFromSystemFolderNew() {
+func (s *PropsReaderSuite) TestReadingConfigFromSystemFolder() {
 	s.osUtils.EXPECT().Getenv("APP_CONFIG").Return("config.properties")
 	fileInSystemDir := &os.File{}
 	fileInHome := &os.File{}
@@ -68,6 +68,46 @@ func (s *PropsReaderSuite) TestReadingConfigFromSystemFolderNew() {
 		}
 		if appConf.Get("key3") != "value3" {
 			s.T().Errorf("paring config file error, %s is missing", "key3")
+		}
+	}
+}
+
+func (s *PropsReaderSuite) TestReadingConfigFromSystemFolderAndReplacePlaceHoldersWithEnvVariables() {
+	s.osUtils.EXPECT().Getenv("APP_CONFIG").Return("config.properties")
+	fileInSystemDir := &os.File{}
+	fileInHome := &os.File{}
+	s.osUtils.EXPECT().Open(s.SystemFolder+"config.properties").Return(fileInSystemDir, nil)
+	s.osUtils.EXPECT().Open(s.HomeDir+"config.properties").Return(fileInHome, nil)
+	s.osUtils.EXPECT().PathExists(s.SystemFolder+"config.properties").Return(true, nil)
+	s.osUtils.EXPECT().PathExists(s.HomeDir+"config.properties").Return(true, nil)
+	s.osUtils.EXPECT().Getenv("Server_addr").Return("192.169.200.2")
+	s.osUtils.EXPECT().Getenv("Server_port").Return("8888")
+	s.osUtils.EXPECT().Getenv("JAVA_HOME").Return("xx")
+	buf1 := strings.NewReader("key=value\n key2 = value2 \n key4=http://${Server_addr}:${Server_port}")
+	buf2 := strings.NewReader("key=valueFromHome\n key3 = value3 ")
+	firstScanner := bufio.NewScanner(buf1)
+	secondScanner := bufio.NewScanner(buf2)
+	s.bufioUtils.EXPECT().NewScanner(fileInSystemDir).Return(firstScanner)
+	s.bufioUtils.EXPECT().NewScanner(fileInHome).Return(secondScanner)
+	if appConf, err := s.factory.New(); err != nil {
+		s.T().Errorf("reading config file error")
+	} else {
+		if appConf.Get("key") != "valueFromHome" {
+			s.T().Errorf("paring config file error")
+		}
+		if appConf.Get("key2") != "value2" {
+			s.T().Errorf("paring config file error, %s is missing", "key2")
+		}
+		if appConf.Get("key3") != "value3" {
+			s.T().Errorf("paring config file error, %s is missing", "key3")
+		}
+
+		if appConf.Get("key4") == "http://${Server_addr}:${Server_port}" {
+			s.T().Errorf("paring config file error, %s is expected to be replaced but not", "key4")
+		}
+
+		if appConf.Get("key4") != "http://192.169.200.2:8888" {
+			s.T().Errorf("paring config file error, %s is missing", "key4")
 		}
 	}
 }
@@ -111,7 +151,7 @@ func (s *PropsReaderSuite) TestSourceFunction() {
 	}
 }
 
-func (s *PropsReaderSuite) TestDontProcessFileDoesntExist() {
+func (s *PropsReaderSuite) TestDoNothingWhenSourceFileDoesntExist() {
 
 	s.osUtils.EXPECT().Getenv("APP_CONFIG").Return("config.properties")
 	fileInSystemDir := &os.File{}
